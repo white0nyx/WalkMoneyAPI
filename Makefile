@@ -1,11 +1,7 @@
 .PHONY:
 
 start:
-	poetry run uvicorn \
-		--reload \
-		--host $$HOST \
-		--port $$PORT \
-		"$$APP_MODULE"
+	uvicorn src.main:app --reload
 
 postgres_db:
 	docker run --name=project_db \
@@ -17,8 +13,8 @@ postgres_db:
 				-p $$DB_PORT:5432 -d --rm postgres:alpine
 
 revision:
-	poetry run alembic revision --autogenerate -m init
+	alembic revision --autogenerate -m init
 
 
 migrate:
-	poetry run alembic upgrade head
+	alembic upgrade head
