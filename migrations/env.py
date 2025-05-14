@@ -1,15 +1,14 @@
 import asyncio
+from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from logging.config import fileConfig
 
-from src.common.configuration import conf
+from migrations.models import all_models  # noqa
 from src.common.base import metadata
-
-from src.user.models import User
+from src.common.configuration import conf
 
 DATABASE_URL = conf.db.build_connection_str()
 
