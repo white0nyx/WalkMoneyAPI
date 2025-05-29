@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends
 
 from src.auth import jwt_auth
 from src.transaction.dependencies import get_transaction_service
-from src.transaction.schemas import TransactionSchema, CreateTransactionSchema, UpdateTransactionSchema
+from src.transaction.schemas import CreateTransactionSchema, UpdateTransactionSchema, GetTransactionSchema
 from src.transaction.service import TransactionService
 from src.user.models import User
 
@@ -15,7 +15,7 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-@router.post("", response_model=TransactionSchema)
+@router.post("", response_model=GetTransactionSchema)
 async def create_transaction(
     transaction_data: CreateTransactionSchema,
     service: Annotated[TransactionService, Depends(get_transaction_service)],
@@ -29,7 +29,7 @@ async def create_transaction(
         raise HTTPException(status_code=400, detail="Error creating transaction")
 
 
-@router.get("/{transaction_id}", response_model=TransactionSchema)
+@router.get("/{transaction_id}", response_model=GetTransactionSchema)
 async def get_transaction(
     transaction_id: int,
     service: Annotated[TransactionService, Depends(get_transaction_service)],
@@ -45,7 +45,7 @@ async def get_transaction(
         raise HTTPException(status_code=400, detail="Error getting transaction")
 
 
-@router.get("", response_model=List[TransactionSchema])
+@router.get("", response_model=List[GetTransactionSchema])
 async def get_all_transactions(
     service: Annotated[TransactionService, Depends(get_transaction_service)],
     user: User = Depends(jwt_auth.get_current_user),
@@ -60,7 +60,7 @@ async def get_all_transactions(
         raise HTTPException(status_code=400, detail="Error getting transactions")
 
 
-@router.put("/{transaction_id}", response_model=TransactionSchema)
+@router.put("/{transaction_id}", response_model=GetTransactionSchema)
 async def update_transaction(
     transaction_id: int,
     transaction_data: UpdateTransactionSchema,

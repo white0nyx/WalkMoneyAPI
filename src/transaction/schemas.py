@@ -4,7 +4,7 @@ from typing import Optional
 from src.common.schemas import BaseSchema
 
 
-class GetTransactionBaseSchema(BaseSchema):
+class GetTransactionSchema(BaseSchema):
     id: int
     account_id: int
     category_id: int
