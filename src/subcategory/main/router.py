@@ -33,3 +33,19 @@ async def create_subcategory(
     except Exception as e:
         logging.exception(f"Error creating subcategory. Error: {e}")
         raise HTTPException(status_code=400, detail="Error creating subcategory")
+
+
+@router.get("/{subcategory_id}", response_model=GetSubCategoryBaseSchema)
+async def get_subcategory(
+    subcategory_id: int,
+    service: Annotated[SubCategoryService, Depends(subcategory_service)],
+    user: Annotated[User, Depends(jwt_auth.get_current_user),],
+):
+    try:
+        subcategory = await service.get_subcategory(subcategory_id, user.id)
+        return subcategory
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Error getting subcategory. Error: {e}")
+        raise HTTPException(status_code=400, detail="Error getting subcategory")

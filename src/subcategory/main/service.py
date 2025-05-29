@@ -1,5 +1,5 @@
-from src.category.main.exceptions import CategoryNotFoundException, CategoryPermissionDeniedException
 from src.category.main.repository import CategoryRepository
+from src.subcategory.main.exceptions import SubCategoryNotFoundException, SubCategoryPermissionDeniedException
 from src.subcategory.main.repository import SubCategoryRepository
 from src.subcategory.main.schemas import CreateSubCategorySchema
 from src.user.models import User
@@ -18,8 +18,16 @@ class SubCategoryService:
     async def create_subcategory(self, data: CreateSubCategorySchema, user: User):
         category = await self.category_repository.find_one(data.category_id)
         if not category:
-            raise CategoryNotFoundException
+            raise SubCategoryNotFoundException
         if category.user_id != user.id:
-            raise CategoryPermissionDeniedException
+            raise SubCategoryPermissionDeniedException
         subcategory = await self.subcategory_repository.add_one(data.model_dump())
+        return subcategory
+
+    async def get_subcategory(self, subcategory_id: int, user_id: int):
+        subcategory = await self.subcategory_repository.find_one(subcategory_id)
+        if not subcategory:
+            raise SubCategoryNotFoundException
+        if subcategory.category.user_id != user_id:
+            raise SubCategoryPermissionDeniedException
         return subcategory
