@@ -15,7 +15,7 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-@router.post("/categories", response_model=CategorySchema)
+@router.post("", response_model=CategorySchema)
 async def create_category(
     category_data: CreateCategorySchema,
     category_service: CategoryService = Depends(get_category_service),
@@ -31,7 +31,7 @@ async def create_category(
         raise HTTPException(status_code=400, detail="Category creation error")
 
 
-@router.get("/categories/{category_id}", response_model=CategorySchema)
+@router.get("/{category_id}", response_model=CategorySchema)
 async def get_category(
     category_id: int,
     category_service: CategoryService = Depends(get_category_service),
@@ -47,7 +47,7 @@ async def get_category(
         raise HTTPException(status_code=400, detail="Error fetching category")
 
 
-@router.get("/categories", response_model=List[CategorySchema])
+@router.get("", response_model=List[CategorySchema])
 async def get_all_categories(
     category_service: CategoryService = Depends(get_category_service),
     user: User = Depends(jwt_auth.get_current_user),
@@ -62,7 +62,7 @@ async def get_all_categories(
         raise HTTPException(status_code=400, detail="Error fetching categories")
 
 
-@router.put("/categories/{category_id}", response_model=CategorySchema)
+@router.put("/{category_id}", response_model=CategorySchema)
 async def update_category(
     category_id: int,
     category_data: UpdateCategorySchema,
@@ -79,7 +79,7 @@ async def update_category(
         raise HTTPException(status_code=400, detail="Category update error")
 
 
-@router.delete("/categories/{category_id}")
+@router.delete("/{category_id}")
 async def delete_category(
     category_id: int,
     category_service: CategoryService = Depends(get_category_service),
