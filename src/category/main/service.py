@@ -1,7 +1,7 @@
 from src.category.main.exceptions import CategoryNotFoundException, CategoryPermissionDeniedException
 from src.category.main.models import Category
 from src.category.main.repository import CategoryRepository
-from src.category.main.schemas import CreateCategorySchema, UpdateCategorySchema
+from src.category.main.schemas import CreateCategorySchema, UpdateCategorySchema, GetCategoryParamsSchema
 from src.user.models import User
 
 
@@ -24,8 +24,8 @@ class CategoryService:
             raise CategoryPermissionDeniedException
         return category
 
-    async def get_all_categories(self, user_id: int):
-        categories = await self.category_repository.find_all_by_user_id(user_id)
+    async def get_all_categories(self, user_id: int, params: GetCategoryParamsSchema):
+        categories = await self.category_repository.find_all_by_user_id(user_id, params)
         return categories
 
     async def update_category(self, category_id: int, category_data: UpdateCategorySchema, user: User):

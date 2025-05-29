@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends
 
 from src.auth import jwt_auth
 from src.category.main.dependencies import get_category_service
-from src.category.main.schemas import CreateCategorySchema, UpdateCategorySchema, GetCategoryBaseSchema
+from src.category.main.schemas import CreateCategorySchema, UpdateCategorySchema, GetCategoryBaseSchema, GetCategoryParamsSchema
 from src.category.main.service import CategoryService
 from src.user.models import User
 
@@ -49,11 +49,12 @@ async def get_category(
 
 @router.get("", response_model=List[GetCategoryBaseSchema])
 async def get_all_categories(
+    params: Annotated[GetCategoryParamsSchema, Depends()],
     service: Annotated[CategoryService, Depends(get_category_service)],
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
-        categories = await service.get_all_categories(user.id)
+        categories = await service.get_all_categories(user.id, params)
         return categories
     except HTTPException:
         raise

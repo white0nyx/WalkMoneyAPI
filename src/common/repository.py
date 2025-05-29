@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import TypeVar, Generic, Protocol
-from sqlalchemy import insert, select, update, delete
+from sqlalchemy import insert, select, update, delete, Select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from src.common.database import async_session_maker
+from src.common.schemas import BaseSchema
 
 
 class HasId(Protocol):
@@ -101,3 +102,10 @@ class SQLAlchemyRepository(AbstractRepository[T]):
             res = await session.execute(do_update_stmt)
             await session.commit()
             return res.scalar_one()
+
+    @staticmethod
+    def apply_pagination(stmt: Select, params: BaseSchema) -> Select:
+        if params.page and params.page_size:
+            offset = (params.page - 1) * params.page_size
+            stmt = stmt.offset(offset).limit(params.page_size)
+        return stmt
