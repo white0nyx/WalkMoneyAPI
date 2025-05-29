@@ -5,7 +5,7 @@ from src.category.main.models import Category
 from src.currency.models import Currency
 from src.loan.models import Loan
 from src.role.models import Role
-from src.subcategory.models import Subcategory
+from src.subcategory.main.models import SubCategory
 from src.transaction.models import Transaction
 from src.transfer.models import Transfer
 from src.user.models import User
@@ -15,7 +15,7 @@ all_models = [
     AccountType,
     Budget,
     Category,
-    Subcategory,
+    SubCategory,
     Currency,
     Loan,
     Role,

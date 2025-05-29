@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.account.models import Account  # noqa
 from src.category.main.models import Category  # noqa
 from src.common.base import Base
-from src.subcategory.models import Subcategory  # noqa
+from src.subcategory.main.models import SubCategory  # noqa
 
 
 class Transaction(Base):
@@ -24,4 +24,4 @@ class Transaction(Base):
 
     account = relationship("Account", back_populates="transactions")
     category = relationship("Category", back_populates="transactions", uselist=False)
-    subcategory = relationship("Subcategory", back_populates="transactions", uselist=False)
+    subcategory = relationship("SubCategory", back_populates="transactions", uselist=False)
