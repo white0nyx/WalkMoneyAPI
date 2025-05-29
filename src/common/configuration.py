@@ -2,6 +2,8 @@ from os import getenv
 from dataclasses import dataclass
 
 from sqlalchemy.engine import URL
+from dotenv import load_dotenv
+load_dotenv()
 
 
 @dataclass
@@ -100,7 +102,7 @@ class SmtpConfig:
 
 @dataclass
 class Configuration:
-    debug = bool(getenv("DEBUG"))
+    debug = bool(getenv("DEBUG", False))
     base = BaseConfig()
     db = DatabaseConfig()
     redis = RedisConfig()
