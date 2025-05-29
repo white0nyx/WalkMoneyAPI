@@ -11,7 +11,7 @@ class Budget(Base):
     __tablename__ = "budgets"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, unique=True, nullable=False)
-    user_id: Mapped[int] = mapped_column(sa.ForeignKey("user.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(sa.ForeignKey("users.id"), nullable=False)
     category_id: Mapped[int] = mapped_column(sa.ForeignKey("categories.id"), nullable=True)
     budget_amount: Mapped[DECIMAL] = mapped_column(DECIMAL(15, 2), nullable=False)
     start_date: Mapped[str] = mapped_column(Date, nullable=True)

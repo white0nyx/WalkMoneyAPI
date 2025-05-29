@@ -2,7 +2,6 @@ import sqlalchemy as sa
 from sqlalchemy import Integer, String, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.category.models import Category  # noqa
 from src.common.base import Base
 
 
@@ -16,3 +15,5 @@ class Subcategory(Base):
     is_archived: Mapped[bool] = mapped_column(Boolean, default=False)
 
     category = relationship("Category", back_populates="subcategories")
+    transactions = relationship("Transaction", back_populates="subcategory")
+

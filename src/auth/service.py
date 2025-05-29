@@ -25,7 +25,7 @@ class AuthService:
             user = await self.auth_repository.find_by_email(user_data.email)
             if not user:
                 raise UserCredentialsException
-            check_pass = jwt_auth.verify_password(user_data.password, user.password)
+            check_pass = jwt_auth.verify_password(user_data.password, user.hash_password)
             if not check_pass:
                 raise UserCredentialsException
             if not user.is_active:

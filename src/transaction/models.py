@@ -14,7 +14,7 @@ class Transaction(Base):
     __tablename__ = "transactions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, unique=True, nullable=False)
-    account_id: Mapped[int] = mapped_column(sa.ForeignKey("account.id"), nullable=False)
+    account_id: Mapped[int] = mapped_column(sa.ForeignKey("accounts.id"), nullable=False)
     category_id: Mapped[int] = mapped_column(sa.ForeignKey("categories.id"), nullable=True)
     subcategory_id: Mapped[int] = mapped_column(sa.ForeignKey("subcategories.id"), nullable=True)
     amount: Mapped[DECIMAL] = mapped_column(DECIMAL(15, 2), nullable=False)

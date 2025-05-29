@@ -15,7 +15,7 @@ class AuthRepository(SQLAlchemyRepository):
 
     async def find_by_email(self, email: str):
         async with async_session_maker() as session:
-            stmt = select(self.model).options(subqueryload(self.model.role)).where(self.model.email == email, self.model.deleted_at == None)
+            stmt = select(self.model).options(subqueryload(self.model.role)).where(self.model.email == email)
             res = await session.execute(stmt)
             return res.scalar_one_or_none()
 

@@ -38,7 +38,7 @@ async def create_user(user_data: dict) -> User:
         user = await auth_repository.find_by_email(user_data["email"])
         if user is not None:
             raise UserAlreadyExistsException
-        user_data["password"] = get_password_hash(user_data["password"])
+        user_data["hash_password"] = get_password_hash(user_data.pop("password"))
         user_data["role_id"] = await auth_repository.get_default_role_id()
         user = await auth_repository.add_one(user_data)
         return user

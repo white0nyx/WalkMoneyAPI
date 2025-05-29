@@ -18,3 +18,7 @@ revision:
 
 migrate:
 	alembic upgrade head
+
+
+db_insert:
+	python3 data_insert/main_insert.py
