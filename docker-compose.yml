@@ -1,25 +1,26 @@
 version: '3.8'
 
 services:
-  app:
+  app2:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8001:8001"
+      - "8001:8000"  # Внешний порт другой!
     environment:
-      - DB_HOST=postgres_db
-      - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
-      - DB_NAME=${DB_NAME}
-      - DB_PORT=5432
+      - DB_HOST=postgres_db2
+      - DB_USER=${DB_USER2}
+      - DB_PASS=${DB_PASS2}
+      - DB_NAME=${DB_NAME2}
+      - DB_PORT=5433
     depends_on:
-      - postgres_db
+      - postgres_db2
     volumes:
       - .:/app
-    command: uv run uvicorn src.main:app --host 0.0.0.0 --port 8001 --reload
+    command: uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    container_name: app2
 
-  postgres_db:
+  postgres_db2:
     image: postgres:alpine
     environment:
       - SSL_MODE=disable
@@ -28,10 +29,11 @@ services:
       - POSTGRES_DB=${DB_NAME}
       - TZ=GMT-3
     ports:
-      - "${DB_PORT}:5432"
+      - "5445:5432"  # Внешний порт другой!
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_2:/var/lib/postgresql/data
     restart: unless-stopped
+    container_name: postgres_db2
 
 volumes:
-  postgres_data:
+  postgres_data_2:
