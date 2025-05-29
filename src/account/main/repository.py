@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from src.common.database import async_session_maker
-from src.account.models import Account
+from src.account.main.models import Account
 from src.common.repository import SQLAlchemyRepository
 
 class AccountRepository(SQLAlchemyRepository):

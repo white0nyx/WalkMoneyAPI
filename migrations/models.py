@@ -1,4 +1,4 @@
-from src.account.models import Account
+from src.account.main.models import Account
 from src.account_type.models import AccountType
 from src.budget.models import Budget
 from src.category.main.models import Category

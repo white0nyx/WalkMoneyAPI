@@ -5,7 +5,7 @@ import sqlalchemy as sa
 from sqlalchemy import Integer, DECIMAL, Text, DateTime, ForeignKey, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.account.models import Account  # noqa
+from src.account.main.models import Account  # noqa
 from src.category.main.models import Category  # noqa
 from src.common.base import Base
 from src.subcategory.main.models import SubCategory  # noqa
