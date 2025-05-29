@@ -1,6 +1,6 @@
 from src.common.schemas import BaseSchema
 
-class GetSubCategoryBaseSchema(BaseSchema):
+class GetSubCategorySchema(BaseSchema):
     id: int
     name: str
     icon_url: str | None = None
@@ -13,3 +13,7 @@ class CreateSubCategorySchema(BaseSchema):
 
 class UpdateSubCategorySchema(CreateSubCategorySchema):
     pass
+
+
+class ResponseGetSubCategorySchema(BaseSchema):
+    subcategories: list[GetSubCategorySchema]
