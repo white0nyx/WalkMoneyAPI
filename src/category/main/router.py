@@ -70,12 +70,12 @@ async def update_category(
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
-        category = await service.update_category(category_id, category_data.model_dump(), user)
+        category = await service.update_category(category_id, category_data, user)
         return category
     except HTTPException:
         raise
     except Exception as e:
-        logging.exception(f"Error updating categories. Data: {category_data} Error: {e}")
+        logging.exception(f"Error updating categories. Error: {e}")
         raise HTTPException(status_code=400, detail="Error updating categories")
 
 
@@ -87,7 +87,7 @@ async def delete_category(
 ):
     try:
         await category_service.delete_category(category_id, user)
-        return "Category deleted"
+        return {"message": "Category deleted successfully"}
     except HTTPException:
         raise
     except Exception as e:

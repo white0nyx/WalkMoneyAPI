@@ -29,8 +29,21 @@ class CategoryService:
         return categories
 
     async def update_category(self, category_id: int, category_data: UpdateCategorySchema, user: User):
-        pass
+        category = await self.category_repository.find_one(category_id)
+        if not category:
+            raise CategoryNotFoundException
+        if category.user_id != user.id:
+            raise CategoryPermissionDeniedException
+        updated_category = await self.category_repository.update_one(category_id, category_data.model_dump())
+        return updated_category
 
     async def delete_category(self, category_id: int, user: User):
-        pass
+        category = await self.category_repository.find_one(category_id)
+        print(category)
+        if not category:
+            raise CategoryNotFoundException
+        if category.user_id != user.id:
+            raise CategoryPermissionDeniedException
+        await self.category_repository.delete_one(category_id)
+        return {"message": "Category deleted successfully"}
 
