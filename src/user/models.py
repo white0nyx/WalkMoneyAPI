@@ -31,3 +31,4 @@ class User(Base):
 
     role = relationship("Role", back_populates="users", uselist=False)
     accounts = relationship("Account", back_populates="user")
+    categories = relationship("Category", back_populates="user")

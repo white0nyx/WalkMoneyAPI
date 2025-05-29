@@ -15,7 +15,8 @@ class CategoryService:
         pass
 
     async def get_all_categories(self, user_id: int):
-        pass
+        categories = await self.category_repository.find_all_by_user_id(user_id)
+        return categories
 
     async def update_category(self, category_id: int, category_data: UpdateCategorySchema, user: User):
         pass
