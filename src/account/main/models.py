@@ -16,6 +16,7 @@ class Account(Base):
     currency_id: Mapped[int] = mapped_column(sa.ForeignKey("currencies.id"), nullable=True)
     type_id: Mapped[int] = mapped_column(sa.ForeignKey("account_types.id"), nullable=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str] = mapped_column(String(255), unique=False, nullable=True)
     balance: Mapped[DECIMAL] = mapped_column(DECIMAL(15, 2), nullable=False, default=0)
     icon_url: Mapped[str] = mapped_column(String(255), nullable=True)
     is_archived: Mapped[bool] = mapped_column(Boolean, default=False)
