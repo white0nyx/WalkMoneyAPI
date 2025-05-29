@@ -1,8 +1,8 @@
 """init
 
-Revision ID: d204d4265125
+Revision ID: 535fa5002151
 Revises: 
-Create Date: 2025-05-29 19:58:01.052363
+Create Date: 2025-05-29 20:23:11.210739
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'd204d4265125'
+revision = '535fa5002151'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -120,9 +120,9 @@ def upgrade():
     sa.CheckConstraint("(transaction_type = 'TRANSFER' AND transfer_to_account_id IS NOT NULL) OR (transaction_type != 'TRANSFER' AND transfer_to_account_id IS NULL)", name='check_transfer_account'),
     sa.CheckConstraint('amount != 0', name='check_amount_non_zero'),
     sa.ForeignKeyConstraint(['account_id'], ['accounts.id'], ),
-    sa.ForeignKeyConstraint(['category_id'], ['categories.id'], ),
-    sa.ForeignKeyConstraint(['subcategory_id'], ['subcategories.id'], ),
-    sa.ForeignKeyConstraint(['transfer_to_account_id'], ['accounts.id'], ),
+    sa.ForeignKeyConstraint(['category_id'], ['categories.id'], onupdate='CASCADE', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['subcategory_id'], ['subcategories.id'], onupdate='CASCADE', ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['transfer_to_account_id'], ['accounts.id'], onupdate='CASCADE', ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('id')
     )

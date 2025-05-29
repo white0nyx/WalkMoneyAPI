@@ -21,9 +21,9 @@ class Transaction(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, unique=True, nullable=False)
     account_id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), nullable=False, index=True)
-    category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id"), nullable=True, index=True)
-    subcategory_id: Mapped[int | None] = mapped_column(ForeignKey("subcategories.id"), nullable=True, index=True)
-    transfer_to_account_id: Mapped[int | None] = mapped_column(ForeignKey("accounts.id"), nullable=True, index=True)
+    category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=True, index=True)
+    subcategory_id: Mapped[int | None] = mapped_column(ForeignKey("subcategories.id", ondelete="SET NULL", onupdate="CASCADE"), nullable=True, index=True)
+    transfer_to_account_id: Mapped[int | None] = mapped_column(ForeignKey("accounts.id", ondelete="SET NULL", onupdate="CASCADE"), nullable=True, index=True)
     amount: Mapped[sa.DECIMAL] = mapped_column(DECIMAL(15, 2), nullable=False)
     transaction_type: Mapped[TransactionType] = mapped_column(sa.Enum(TransactionType), nullable=False)
     transaction_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
