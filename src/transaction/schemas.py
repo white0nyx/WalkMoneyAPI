@@ -1,8 +1,11 @@
-from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 
-class TransactionBaseSchema(BaseModel):
+from src.common.schemas import BaseSchema
+
+
+class GetTransactionBaseSchema(BaseSchema):
+    id: int
     account_id: int
     category_id: int
     subcategory_id: int
@@ -11,17 +14,8 @@ class TransactionBaseSchema(BaseModel):
     transaction_date: Optional[datetime] = None
     description: Optional[str] = None
 
-    class Config:
-        orm_mode = True
-
-class CreateTransactionSchema(TransactionBaseSchema):
+class CreateTransactionSchema(BaseSchema):
     pass
 
-class UpdateTransactionSchema(TransactionBaseSchema):
+class UpdateTransactionSchema(BaseSchema):
     pass
-
-class TransactionSchema(TransactionBaseSchema):
-    id: int
-
-    class Config:
-        orm_mode = True

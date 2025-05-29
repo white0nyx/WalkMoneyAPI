@@ -1,14 +1,12 @@
 import logging
-from datetime import datetime
-from typing import List
+from typing import List, Annotated
 
 from fastapi import APIRouter, HTTPException, Depends
-from fastapi.responses import JSONResponse
 
 from src.auth import jwt_auth
 from src.transaction.dependencies import get_transaction_service
 from src.transaction.schemas import TransactionSchema, CreateTransactionSchema, UpdateTransactionSchema
-from src.transaction.service import TransactionService, TransactionNotFoundError, AccessForbiddenError
+from src.transaction.service import TransactionService
 from src.user.models import User
 
 router = APIRouter(
@@ -17,100 +15,82 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-@router.post("/transactions", response_model=TransactionSchema)
+@router.post("", response_model=TransactionSchema)
 async def create_transaction(
     transaction_data: CreateTransactionSchema,
-    transaction_service: TransactionService = Depends(get_transaction_service),
+    service: Annotated[TransactionService, Depends(get_transaction_service)],
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
-        transaction = await transaction_service.create_transaction(transaction_data.model_dump(), user)
+        transaction = await service.create_transaction(transaction_data.model_dump(), user)
         return transaction
     except Exception as e:
-        logging.exception(f"Transaction creation error. Data: {transaction_data} Error: {e}")
-        raise HTTPException(status_code=400, detail="Transaction creation error")
+        logging.exception(f"Error creating transaction. Error: {e}")
+        raise HTTPException(status_code=400, detail="Error creating transaction")
 
 
-@router.get("/transactions/{transaction_id}", response_model=TransactionSchema)
+@router.get("/{transaction_id}", response_model=TransactionSchema)
 async def get_transaction(
     transaction_id: int,
-    transaction_service: TransactionService = Depends(get_transaction_service),
+    service: Annotated[TransactionService, Depends(get_transaction_service)],
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
-        transaction = await transaction_service.get_transaction(transaction_id, user)
+        transaction = await service.get_transaction(transaction_id, user)
         return transaction
-    except TransactionNotFoundError:
-        raise HTTPException(status_code=404, detail="Transaction not found")
-    except AccessForbiddenError:
-        raise HTTPException(status_code=403, detail="Access to this transaction is forbidden")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Error getting transaction. Error: {e}")
+        raise HTTPException(status_code=400, detail="Error getting transaction")
 
 
-@router.get("/transactions", response_model=List[TransactionSchema])
+@router.get("", response_model=List[TransactionSchema])
 async def get_all_transactions(
-    transaction_service: TransactionService = Depends(get_transaction_service),
+    service: Annotated[TransactionService, Depends(get_transaction_service)],
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
-        transactions = await transaction_service.get_all_transactions(user)
+        transactions = await service.get_all_transactions(user)
         return transactions
-    except AccessForbiddenError:
-        raise HTTPException(status_code=403, detail="Access to transactions is forbidden")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Error getting transactions. Error: {e}")
+        raise HTTPException(status_code=400, detail="Error getting transactions")
 
 
-@router.put("/transactions/{transaction_id}", response_model=TransactionSchema)
+@router.put("/{transaction_id}", response_model=TransactionSchema)
 async def update_transaction(
     transaction_id: int,
     transaction_data: UpdateTransactionSchema,
-    transaction_service: TransactionService = Depends(get_transaction_service),
+    service: Annotated[TransactionService, Depends(get_transaction_service)],
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
-        transaction = await transaction_service.update_transaction(transaction_id, transaction_data.model_dump(), user)
+        transaction = await service.update_transaction(transaction_id, transaction_data.model_dump(), user)
         return transaction
-    except TransactionNotFoundError:
-        raise HTTPException(status_code=404, detail="Transaction not found")
-    except AccessForbiddenError:
-        raise HTTPException(status_code=403, detail="Access to this transaction is forbidden")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Error updating transaction. Error: {e}")
+        raise HTTPException(status_code=400, detail="Error updating transaction")
 
 
-@router.delete("/transactions/{transaction_id}")
+@router.delete("/{transaction_id}")
 async def delete_transaction(
     transaction_id: int,
-    transaction_service: TransactionService = Depends(get_transaction_service),
+    service: Annotated[TransactionService, Depends(get_transaction_service)],
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
-        await transaction_service.delete_transaction(transaction_id, user)
+        await service.delete_transaction(transaction_id, user)
         return {"message": "Transaction deleted"}
-    except TransactionNotFoundError:
-        raise HTTPException(status_code=404, detail="Transaction not found")
-    except AccessForbiddenError:
-        raise HTTPException(status_code=403, detail="Access to this transaction is forbidden")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Error deleting transaction. Error: {e}")
+        raise HTTPException(status_code=400, detail="Error deleting transaction")
 
 
-@router.get("/transactions/by_account/{account_id}", response_model=List[TransactionSchema])
-async def get_transactions_by_account(
-    account_id: int,
-    transaction_service: TransactionService = Depends(get_transaction_service),
-    user: User = Depends(jwt_auth.get_current_user),
-):
-    try:
-        transactions = await transaction_service.find_transactions_by_account(account_id, user)
-        return transactions
-    except AccessForbiddenError:
-        raise HTTPException(status_code=403, detail="Access to this transaction is forbidden")
 
-
-@router.get("/transactions/by_date_range", response_model=List[TransactionSchema])
-async def get_transactions_by_date_range(
-    start_date: datetime,
-    end_date: datetime,
-    transaction_service: TransactionService = Depends(get_transaction_service),
-    user: User = Depends(jwt_auth.get_current_user),
-):
-    try:
-        transactions = await transaction_service.find_transactions_by_date_range(start_date, end_date, user)
-        return transactions
-    except AccessForbiddenError:
-        raise HTTPException(status_code=403, detail="Access to this transaction is forbidden")
