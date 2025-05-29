@@ -9,6 +9,14 @@ class GetAccountSchema(BaseSchema):
     type_id: int
     icon_url: str | None
 
+class GetSelectedAccountSchema(BaseSchema):
+    id: int
+    name: str
+    balance: float
+    type_id: int
+    icon_url: str | None = None
+    currency_id: int | None = None
+    is_archived: bool = False
 
 class ResponseGetAccountsSchema(BaseSchema):
     accounts: list[GetAccountSchema]

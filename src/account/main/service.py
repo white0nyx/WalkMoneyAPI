@@ -1,3 +1,4 @@
+from src.account.main.exceptions import AccountNotFoundException, AccountPermissionDeniedException
 from src.account.main.models import Account
 from src.account.main.repository import AccountRepository
 from src.account.main.schemas import CreateAccountSchema
@@ -18,3 +19,11 @@ class AccountService:
     async def get_accounts(self, user: User):
         accounts = await self.account_repository.find_all_by_user_id(user.id)
         return {"accounts": accounts}
+
+    async def get_account(self, account_id: int, user: User) -> Account | None:
+        account = await self.account_repository.find_one(account_id)
+        if not account:
+            raise AccountNotFoundException
+        if account.user_id != user.id:
+            raise AccountPermissionDeniedException
+        return account

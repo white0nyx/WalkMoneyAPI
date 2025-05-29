@@ -6,7 +6,7 @@ from typing import List, Annotated
 
 from fastapi import APIRouter, HTTPException, Depends
 
-from src.account.main.schemas import CreateAccountSchema, GetAccountSchema, ResponseGetAccountsSchema
+from src.account.main.schemas import CreateAccountSchema, GetAccountSchema, ResponseGetAccountsSchema, GetSelectedAccountSchema
 from src.account.main.service import AccountService
 from src.auth import jwt_auth
 from src.account.main.dependencies import account_service
@@ -47,3 +47,21 @@ async def get_accounts(
     except Exception as e:
         logging.exception(f"Error getting accounts. Error: {e}")
         raise HTTPException(status_code=400, detail="Error getting accounts")
+
+
+@router.get("/{account_id}", response_model=GetSelectedAccountSchema)
+async def get_account(
+        account_id: int,
+        service: Annotated[AccountService, Depends(account_service)],
+        user: Annotated[User, Depends(jwt_auth.get_current_user)],
+):
+    try:
+        account = await service.get_account(account_id, user)
+        if not account:
+            raise HTTPException(status_code=404, detail="Account not found")
+        return account
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Error getting account with id {account_id}. Error: {e}")
+        raise HTTPException(status_code=400, detail="Error getting account")
