@@ -9,9 +9,9 @@ services:
       - "8001:8000"  # Внешний порт другой!
     environment:
       - DB_HOST=postgres_db2
-      - DB_USER=${DB_USER2}
-      - DB_PASS=${DB_PASS2}
-      - DB_NAME=${DB_NAME2}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME}
       - DB_PORT=5433
     depends_on:
       - postgres_db2
