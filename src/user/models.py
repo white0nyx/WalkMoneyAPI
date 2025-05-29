@@ -24,7 +24,6 @@ class User(Base):
     last_sign_in_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), unique=False, nullable=True, default=datetime.now(UTC))
     last_sign_in_ip: Mapped[str] = mapped_column(String(32), unique=False, nullable=True)
 
-    phone: Mapped[str] = mapped_column(String(15), nullable=True)
     role_id: Mapped[int] = mapped_column(ForeignKey("roles.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=datetime.now(UTC))
