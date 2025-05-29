@@ -22,7 +22,7 @@ async def create_transaction(
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
-        transaction = await service.create_transaction(transaction_data.model_dump(), user)
+        transaction = await service.create_transaction(transaction_data, user)
         return transaction
     except Exception as e:
         logging.exception(f"Error creating transaction. Error: {e}")

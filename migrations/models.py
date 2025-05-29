@@ -3,7 +3,6 @@ from src.account_type.models import AccountType
 from src.budget.models import Budget
 from src.category.main.models import Category
 from src.currency.models import Currency
-from src.loan.models import Loan
 from src.role.models import Role
 from src.subcategory.main.models import SubCategory
 from src.transaction.main.models import Transaction
@@ -17,7 +16,6 @@ all_models = [
     Category,
     SubCategory,
     Currency,
-    Loan,
     Role,
     User,
     Transaction,

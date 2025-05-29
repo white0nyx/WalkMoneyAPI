@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 02f9bf642dc3
+Revision ID: c70a94beeb74
 Revises: 
-Create Date: 2025-05-29 16:21:13.274373
+Create Date: 2025-05-29 18:20:17.362761
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '02f9bf642dc3'
+revision = 'c70a94beeb74'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -95,17 +95,6 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('id')
     )
-    op.create_table('loans',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('amount', sa.DECIMAL(precision=15, scale=2), nullable=False),
-    sa.Column('from_account_id', sa.Integer(), nullable=False),
-    sa.Column('loan_date', sa.DateTime(timezone=True), nullable=True),
-    sa.Column('repayment_date', sa.DateTime(timezone=True), nullable=True),
-    sa.Column('loan_status', sa.String(length=50), nullable=False),
-    sa.ForeignKeyConstraint(['from_account_id'], ['accounts.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('id')
-    )
     op.create_table('subcategories',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('category_id', sa.Integer(), nullable=False),
@@ -151,7 +140,6 @@ def downgrade():
     op.drop_table('transactions')
     op.drop_table('transfers')
     op.drop_table('subcategories')
-    op.drop_table('loans')
     op.drop_table('budgets')
     op.drop_table('categories')
     op.drop_table('accounts')
