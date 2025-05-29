@@ -4,6 +4,8 @@ from datetime import datetime
 
 from dotenv import load_dotenv
 
+from data_insert.balance_trigger_insert import balance_trigger_insert
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
@@ -28,4 +30,5 @@ if __name__ == "__main__":
     users_load(connection_params)
     currencies_insert(connection_params)
     account_types_insert(connection_params)
+    balance_trigger_insert(connection_params)
     print(f"Данные добавлены выполнена за: {datetime.now() - start}")

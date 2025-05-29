@@ -11,7 +11,6 @@ from src.common.base import Base
 from src.subcategory.main.models import SubCategory  # noqa
 
 
-# Перечисление для типов транзакций
 class TransactionType(enum.Enum):
     INCOME = "income"
     EXPENSE = "expense"
@@ -30,18 +29,17 @@ class Transaction(Base):
     transaction_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    # Связи
     account = relationship("Account", foreign_keys=[account_id], back_populates="transactions")
     transfer_to_account = relationship("Account", foreign_keys=[transfer_to_account_id])
     category = relationship("Category", back_populates="transactions", uselist=False)
     subcategory = relationship("SubCategory", back_populates="transactions", uselist=False)
 
-    # Ограничения
     __table_args__ = (
         CheckConstraint("amount != 0", name="check_amount_non_zero"),
         CheckConstraint(
-            "(transaction_type = 'transfer' AND transfer_to_account_id IS NOT NULL) OR "
-            "(transaction_type != 'transfer' AND transfer_to_account_id IS NULL)",
+            "(transaction_type = 'TRANSFER' AND transfer_to_account_id IS NOT NULL) OR "
+            "(transaction_type != 'TRANSFER' AND transfer_to_account_id IS NULL)",
             name="check_transfer_account"
         ),
     )
+
