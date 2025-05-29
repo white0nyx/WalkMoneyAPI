@@ -14,7 +14,7 @@ class Account(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, unique=True, nullable=False)
     user_id: Mapped[int] = mapped_column(sa.ForeignKey("users.id"), nullable=False)
     currency_id: Mapped[int] = mapped_column(sa.ForeignKey("currencies.id"), nullable=True)
-    type_id: Mapped[int] = mapped_column(sa.ForeignKey("account_types.type_id"), nullable=True)
+    type_id: Mapped[int] = mapped_column(sa.ForeignKey("account_types.id"), nullable=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     initial_balance: Mapped[DECIMAL] = mapped_column(DECIMAL(15, 2), nullable=False)
     icon_url: Mapped[str] = mapped_column(String(255), nullable=True)
