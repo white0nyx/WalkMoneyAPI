@@ -34,7 +34,7 @@ if os.environ.get("ENV") == "prod":
     )
 else:
     app = FastAPI(
-        title="New App API",
+        title="WalkMoneyAPI",
         openapi_url="/api/openapi.json",
         docs_url="/api/docs",
         lifespan=lifespan,

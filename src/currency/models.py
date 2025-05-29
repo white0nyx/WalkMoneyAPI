@@ -13,3 +13,4 @@ class Currency(Base):
     icon_url: Mapped[str] = mapped_column(String(255), nullable=True)
 
     accounts = relationship("Account", back_populates="currency")
+

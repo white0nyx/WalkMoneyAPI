@@ -1,3 +1,4 @@
+from src.category.main.models import Category
 from src.category.main.repository import CategoryRepository
 from src.category.main.schemas import CreateCategorySchema, UpdateCategorySchema
 from src.user.models import User
@@ -8,8 +9,11 @@ class CategoryService:
     def __init__(self, category_repository: CategoryRepository):
         self.category_repository = category_repository
 
-    async def create_category(self, category_data: CreateCategorySchema, user: User):
-        pass
+    async def create_category(self, category_data: CreateCategorySchema, user: User) -> Category:
+        category_data = category_data.model_dump()
+        category_data["user_id"] = user.id
+        category = await self.category_repository.add_one(category_data)
+        return category
 
     async def get_category(self, category_id: int, user: User):
         pass

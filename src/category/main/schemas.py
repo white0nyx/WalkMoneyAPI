@@ -1,22 +1,16 @@
-from pydantic import BaseModel
-from typing import Optional
+from src.common.schemas import BaseSchema
 
-class CategoryBaseSchema(BaseModel):
-    name: str
-    icon_url: Optional[str] = None
-    is_archived: Optional[bool] = False
 
-    class Config:
-        orm_mode = True
-
-class CreateCategorySchema(CategoryBaseSchema):
-    pass
-
-class UpdateCategorySchema(CategoryBaseSchema):
-    pass
-
-class CategorySchema(CategoryBaseSchema):
+class GetCategoryBaseSchema(BaseSchema):
     id: int
+    name: str
+    icon_url: str | None = None
 
-    class Config:
-        orm_mode = True
+
+class CreateCategorySchema(BaseSchema):
+    name: str
+    icon_url: str | None = None
+
+
+class UpdateCategorySchema(CreateCategorySchema):
+    pass

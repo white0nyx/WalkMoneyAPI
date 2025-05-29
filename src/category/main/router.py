@@ -1,11 +1,11 @@
 import logging
-from typing import List
+from typing import List, Annotated
 
 from fastapi import APIRouter, HTTPException, Depends
 
 from src.auth import jwt_auth
 from src.category.main.dependencies import get_category_service
-from src.category.main.schemas import CategorySchema, CreateCategorySchema, UpdateCategorySchema
+from src.category.main.schemas import CreateCategorySchema, UpdateCategorySchema, GetCategoryBaseSchema
 from src.category.main.service import CategoryService
 from src.user.models import User
 
@@ -15,68 +15,68 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-@router.post("", response_model=CategorySchema)
+@router.post("", response_model=GetCategoryBaseSchema)
 async def create_category(
-    category_data: CreateCategorySchema,
-    category_service: CategoryService = Depends(get_category_service),
+    data: CreateCategorySchema,
+    service: Annotated[CategoryService, Depends(get_category_service)],
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
-        category = await category_service.create_category(category_data, user)
+        category = await service.create_category(data, user)
         return category
     except HTTPException:
         raise
     except Exception as e:
-        logging.exception(f"Category creation error. Data: {category_data} Error: {e}")
-        raise HTTPException(status_code=400, detail="Category creation error")
+        logging.exception(f"Error creating category. Error: {e}")
+        raise HTTPException(status_code=400, detail="Error creating category")
 
 
-@router.get("/{category_id}", response_model=CategorySchema)
+@router.get("/{category_id}", response_model=GetCategoryBaseSchema)
 async def get_category(
     category_id: int,
-    category_service: CategoryService = Depends(get_category_service),
+    service: Annotated[CategoryService, Depends(get_category_service)],
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
-        category = await category_service.get_category(category_id, user)
+        category = await service.get_category(category_id, user)
         return category
     except HTTPException:
         raise
     except Exception as e:
-        logging.exception(f"Error fetching category. Category ID: {category_id} Error: {e}")
-        raise HTTPException(status_code=400, detail="Error fetching category")
+        logging.exception(f"Error getting category. Error: {e}")
+        raise HTTPException(status_code=400, detail="Error getting category")
 
 
-@router.get("", response_model=List[CategorySchema])
+@router.get("", response_model=List[GetCategoryBaseSchema])
 async def get_all_categories(
-    category_service: CategoryService = Depends(get_category_service),
+    service: Annotated[CategoryService, Depends(get_category_service)],
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
-        categories = await category_service.get_all_categories(user.id)
+        categories = await service.get_all_categories(user.id)
         return categories
     except HTTPException:
         raise
     except Exception as e:
-        logging.exception(f"Error fetching categories for user ID: {user.id} Error: {e}")
-        raise HTTPException(status_code=400, detail="Error fetching categories")
+        logging.exception(f"Error getting categories. Error: {e}")
+        raise HTTPException(status_code=400, detail="Error getting categories")
 
 
-@router.put("/{category_id}", response_model=CategorySchema)
+@router.put("/{category_id}", response_model=GetCategoryBaseSchema)
 async def update_category(
     category_id: int,
     category_data: UpdateCategorySchema,
-    category_service: CategoryService = Depends(get_category_service),
+    service: Annotated[CategoryService, Depends(get_category_service)],
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
-        category = await category_service.update_category(category_id, category_data.model_dump(), user)
+        category = await service.update_category(category_id, category_data.model_dump(), user)
         return category
     except HTTPException:
         raise
     except Exception as e:
-        logging.exception(f"Category update error. Category ID: {category_id} Data: {category_data} Error: {e}")
-        raise HTTPException(status_code=400, detail="Category update error")
+        logging.exception(f"Error updating categories. Data: {category_data} Error: {e}")
+        raise HTTPException(status_code=400, detail="Error updating categories")
 
 
 @router.delete("/{category_id}")
@@ -91,6 +91,6 @@ async def delete_category(
     except HTTPException:
         raise
     except Exception as e:
-        logging.exception(f"Category deletion error. Category ID: {category_id} Error: {e}")
+        logging.exception(f"Category deletion error. Error: {e}")
         raise HTTPException(status_code=400, detail="Category deletion error")
 

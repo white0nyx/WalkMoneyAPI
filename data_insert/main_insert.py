@@ -4,12 +4,12 @@ from datetime import datetime
 
 from dotenv import load_dotenv
 
-
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from data_insert.roles_insert import roles_insert
 from data_insert.users_insert import users_load
+from data_insert.currency_insert import currencies_insert
 
 
 load_dotenv()
@@ -25,4 +25,5 @@ if __name__ == "__main__":
     start = datetime.now()
     roles_insert(connection_params)
     users_load(connection_params)
+    currencies_insert(connection_params)
     print(f"Данные добавлены выполнена за: {datetime.now() - start}")
