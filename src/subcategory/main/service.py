@@ -40,3 +40,20 @@ class SubCategoryService:
         if subcategory.category.user_id != user_id:
             raise SubCategoryPermissionDeniedException
         return subcategory
+
+    async def update_subcategory(self, subcategory_id: int, data: CreateSubCategorySchema, user_id: int):
+        subcategory = await self.subcategory_repository.find_one(subcategory_id)
+        if not subcategory:
+            raise SubCategoryNotFoundException
+        if subcategory.category.user_id != user_id:
+            raise SubCategoryPermissionDeniedException
+        updated_subcategory = await self.subcategory_repository.update_one(subcategory_id, data.model_dump())
+        return updated_subcategory
+
+    async def delete_subcategory(self, subcategory_id: int, user_id: int) -> None:
+        subcategory = await self.subcategory_repository.find_one(subcategory_id)
+        if not subcategory:
+            raise SubCategoryNotFoundException
+        if subcategory.category.user_id != user_id:
+            raise SubCategoryPermissionDeniedException
+        await self.subcategory_repository.delete_one(subcategory_id)
