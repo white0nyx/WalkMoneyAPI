@@ -4,7 +4,7 @@ from typing import List, Annotated
 from fastapi import APIRouter, HTTPException, Depends
 
 from src.auth import jwt_auth
-from src.transaction.main.dependencies import get_transaction_service
+from src.transaction.main.dependencies import transaction_service
 from src.transaction.main.schemas import CreateTransactionSchema, UpdateTransactionSchema, GetTransactionSchema
 from src.transaction.main.service import TransactionService
 from src.user.models import User
@@ -18,7 +18,7 @@ router = APIRouter(
 @router.post("", response_model=GetTransactionSchema)
 async def create_transaction(
     transaction_data: CreateTransactionSchema,
-    service: Annotated[TransactionService, Depends(get_transaction_service)],
+    service: Annotated[TransactionService, Depends(transaction_service)],
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
@@ -32,7 +32,7 @@ async def create_transaction(
 @router.get("/{transaction_id}", response_model=GetTransactionSchema)
 async def get_transaction(
     transaction_id: int,
-    service: Annotated[TransactionService, Depends(get_transaction_service)],
+    service: Annotated[TransactionService, Depends(transaction_service)],
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
@@ -47,7 +47,7 @@ async def get_transaction(
 
 @router.get("", response_model=List[GetTransactionSchema])
 async def get_all_transactions(
-    service: Annotated[TransactionService, Depends(get_transaction_service)],
+    service: Annotated[TransactionService, Depends(transaction_service)],
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
@@ -64,7 +64,7 @@ async def get_all_transactions(
 async def update_transaction(
     transaction_id: int,
     transaction_data: UpdateTransactionSchema,
-    service: Annotated[TransactionService, Depends(get_transaction_service)],
+    service: Annotated[TransactionService, Depends(transaction_service)],
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
@@ -80,7 +80,7 @@ async def update_transaction(
 @router.delete("/{transaction_id}")
 async def delete_transaction(
     transaction_id: int,
-    service: Annotated[TransactionService, Depends(get_transaction_service)],
+    service: Annotated[TransactionService, Depends(transaction_service)],
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:

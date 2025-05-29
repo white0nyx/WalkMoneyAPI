@@ -11,7 +11,7 @@ from src.common.base import Base
 from src.subcategory.main.models import SubCategory  # noqa
 
 
-class TransactionType(enum.Enum):
+class TransactionType(str, enum.Enum):
     INCOME = "income"
     EXPENSE = "expense"
     TRANSFER = "transfer"
@@ -26,7 +26,7 @@ class Transaction(Base):
     transfer_to_account_id: Mapped[int | None] = mapped_column(ForeignKey("accounts.id", ondelete="SET NULL", onupdate="CASCADE"), nullable=True, index=True)
     amount: Mapped[sa.DECIMAL] = mapped_column(DECIMAL(15, 2), nullable=False)
     transaction_type: Mapped[TransactionType] = mapped_column(sa.Enum(TransactionType), nullable=False)
-    transaction_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=datetime.now)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     account = relationship("Account", foreign_keys=[account_id], back_populates="transactions")

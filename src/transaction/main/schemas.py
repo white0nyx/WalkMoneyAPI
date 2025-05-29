@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from src.common.schemas import BaseSchema
+from src.transaction.main.models import TransactionType
 
 
 class GetTransactionSchema(BaseSchema):
@@ -15,7 +16,15 @@ class GetTransactionSchema(BaseSchema):
     description: Optional[str] = None
 
 class CreateTransactionSchema(BaseSchema):
-    pass
+    account_id: int
+    category_id: int | None = None
+    subcategory_id: int | None = None
+    transfer_to_account_id: int | None = None
+    amount: float = 0
+    transaction_type: TransactionType
+    created_at: datetime | None = None
+    description: str | None
+
 
 class UpdateTransactionSchema(BaseSchema):
     pass

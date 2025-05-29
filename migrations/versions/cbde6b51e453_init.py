@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 2d7f9a232a1a
+Revision ID: cbde6b51e453
 Revises: 
-Create Date: 2025-05-29 20:36:42.972592
+Create Date: 2025-05-29 22:06:30.626549
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '2d7f9a232a1a'
+revision = 'cbde6b51e453'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -116,7 +116,7 @@ def upgrade():
     sa.Column('transfer_to_account_id', sa.Integer(), nullable=True),
     sa.Column('amount', sa.DECIMAL(precision=15, scale=2), nullable=False),
     sa.Column('transaction_type', sa.Enum('INCOME', 'EXPENSE', 'TRANSFER', name='transactiontype'), nullable=False),
-    sa.Column('transaction_date', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('description', sa.Text(), nullable=True),
     sa.CheckConstraint("(transaction_type = 'TRANSFER' AND transfer_to_account_id IS NOT NULL) OR (transaction_type != 'TRANSFER' AND transfer_to_account_id IS NULL)", name='check_transfer_account'),
     sa.CheckConstraint('amount != 0', name='check_amount_non_zero'),
