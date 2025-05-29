@@ -3,125 +3,151 @@ from psycopg2 import Error
 
 def balance_trigger_insert(connection_params: dict):
     create_trigger_script = """
-    -- Удаляем существующую функцию, если она есть
-    DROP FUNCTION IF EXISTS update_account_balance() CASCADE;
-
-    -- Создаем функцию
-    CREATE OR REPLACE FUNCTION update_account_balance()
+    -- Создание типа ENUM, если он ещё не существует
+    DO $$
+    BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'transactiontype') THEN
+            CREATE TYPE transactiontype AS ENUM ('INCOME', 'EXPENSE', 'TRANSFER');
+        END IF;
+    END;
+    $$;
+    
+    
+    -- Переименование поля initial_balance → balance, если необходимо
+    DO $$
+    BEGIN
+        IF EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_name = 'accounts'
+              AND column_name = 'initial_balance'
+        ) THEN
+            EXECUTE 'ALTER TABLE accounts RENAME COLUMN initial_balance TO balance';
+        END IF;
+    END;
+    $$;
+    
+    
+    -- Функция: обработка вставки транзакции
+    CREATE OR REPLACE FUNCTION trg_transaction_insert()
     RETURNS TRIGGER AS $$
     BEGIN
-        -- Проверка существования счетов
-        IF (NEW IS NOT NULL AND NEW.account_id IS NOT NULL AND NOT EXISTS (
-                SELECT 1 FROM accounts WHERE id = NEW.account_id
-            )) THEN
-            RAISE EXCEPTION 'Account with id % does not exist', NEW.account_id;
+        IF NEW.transaction_type = 'INCOME' THEN
+            UPDATE accounts SET balance = balance + NEW.amount
+            WHERE id = NEW.account_id;
+    
+        ELSIF NEW.transaction_type = 'EXPENSE' THEN
+            UPDATE accounts SET balance = balance - NEW.amount
+            WHERE id = NEW.account_id;
+    
+        ELSIF NEW.transaction_type = 'TRANSFER' THEN
+            UPDATE accounts SET balance = balance - NEW.amount
+            WHERE id = NEW.account_id;
+    
+            UPDATE accounts SET balance = balance + NEW.amount
+            WHERE id = NEW.transfer_to_account_id;
         END IF;
-        IF (NEW IS NOT NULL AND NEW.transaction_type = 'transfer' AND NEW.transfer_to_account_id IS NOT NULL AND NOT EXISTS (
-                SELECT 1 FROM accounts WHERE id = NEW.transfer_to_account_id
-            )) THEN
-            RAISE EXCEPTION 'Transfer account with id % does not exist', NEW.transfer_to_account_id;
-        END IF;
-        IF (OLD IS NOT NULL AND OLD.account_id IS NOT NULL AND NOT EXISTS (
-                SELECT 1 FROM accounts WHERE id = OLD.account_id
-            )) THEN
-            RAISE EXCEPTION 'Account with id % does not exist', OLD.account_id;
-        END IF;
-        IF (OLD IS NOT NULL AND OLD.transaction_type = 'transfer' AND OLD.transfer_to_account_id IS NOT NULL AND NOT EXISTS (
-                SELECT 1 FROM accounts WHERE id = OLD.transfer_to_account_id
-            )) THEN
-            RAISE EXCEPTION 'Transfer account with id % does not exist', OLD.transfer_to_account_id;
-        END IF;
-
-        -- Обработка INSERT
-        IF TG_OP = 'INSERT' THEN
-            IF NEW.transaction_type = 'income' THEN
-                UPDATE accounts
-                SET balance = balance + NEW.amount
-                WHERE id = NEW.account_id;
-            ELSIF NEW.transaction_type = 'expense' THEN
-                UPDATE accounts
-                SET balance = balance - NEW.amount
-                WHERE id = NEW.account_id;
-            ELSIF NEW.transaction_type = 'transfer' THEN
-                UPDATE accounts
-                SET balance = balance - NEW.amount
-                WHERE id = NEW.account_id;
-                UPDATE accounts
-                SET balance = balance + NEW.amount
-                WHERE id = NEW.transfer_to_account_id;
-            END IF;
-
-        -- Обработка DELETE
-        ELSIF TG_OP = 'DELETE' THEN
-            IF OLD.transaction_type = 'income' THEN
-                UPDATE accounts
-                SET balance = balance - OLD.amount
-                WHERE id = OLD.account_id;
-            ELSIF OLD.transaction_type = 'expense' THEN
-                UPDATE accounts
-                SET balance = balance + OLD.amount
-                WHERE id = OLD.account_id;
-            ELSIF OLD.transaction_type = 'transfer' THEN
-                UPDATE accounts
-                SET balance = balance + OLD.amount
-                WHERE id = OLD.account_id;
-                UPDATE accounts
-                SET balance = balance - OLD.amount
-                WHERE id = OLD.transfer_to_account_id;
-            END IF;
-
-        -- Обработка UPDATE
-        ELSIF TG_OP = 'UPDATE' THEN
-            IF OLD.account_id != NEW.account_id OR OLD.amount != NEW.amount OR 
-               OLD.transaction_type != NEW.transaction_type OR 
-               OLD.transfer_to_account_id IS DISTINCT FROM NEW.transfer_to_account_id THEN
-                -- Откатываем старую транзакцию
-                IF OLD.transaction_type = 'income' THEN
-                    UPDATE accounts
-                    SET balance = balance - OLD.amount
-                    WHERE id = OLD.account_id;
-                ELSIF OLD.transaction_type = 'expense' THEN
-                    UPDATE accounts
-                    SET balance = balance + OLD.amount
-                    WHERE id = OLD.account_id;
-                ELSIF OLD.transaction_type = 'transfer' THEN
-                    UPDATE accounts
-                    SET balance = balance + OLD.amount
-                    WHERE id = OLD.account_id;
-                    UPDATE accounts
-                    SET balance = balance - OLD.amount
-                    WHERE id = OLD.transfer_to_account_id;
-                END IF;
-
-                -- Применяем новую транзакцию
-                IF NEW.transaction_type = 'income' THEN
-                    UPDATE accounts
-                    SET balance = balance + NEW.amount
-                    WHERE id = NEW.account_id;
-                ELSIF NEW.transaction_type = 'expense' THEN
-                    UPDATE accounts
-                    SET balance = balance - NEW.amount
-                    WHERE id = NEW.account_id;
-                ELSIF NEW.transaction_type = 'transfer' THEN
-                    UPDATE accounts
-                    SET balance = balance - NEW.amount
-                    WHERE id = NEW.account_id;
-                    UPDATE accounts
-                    SET balance = balance + NEW.amount
-                    WHERE id = NEW.transfer_to_account_id;
-                END IF;
-            END IF;
-        END IF;
-
-        RETURN NULL;
+    
+        RETURN NEW;
     END;
     $$ LANGUAGE plpgsql;
-
-    -- Создание триггера
-    CREATE TRIGGER transaction_balance_trigger
-    AFTER INSERT OR UPDATE OR DELETE ON transactions
+    
+    
+    -- Функция: обработка удаления транзакции
+    CREATE OR REPLACE FUNCTION trg_transaction_delete()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        IF OLD.transaction_type = 'INCOME' THEN
+            UPDATE accounts SET balance = balance - OLD.amount
+            WHERE id = OLD.account_id;
+    
+        ELSIF OLD.transaction_type = 'EXPENSE' THEN
+            UPDATE accounts SET balance = balance + OLD.amount
+            WHERE id = OLD.account_id;
+    
+        ELSIF OLD.transaction_type = 'TRANSFER' THEN
+            UPDATE accounts SET balance = balance + OLD.amount
+            WHERE id = OLD.account_id;
+    
+            UPDATE accounts SET balance = balance - OLD.amount
+            WHERE id = OLD.transfer_to_account_id;
+        END IF;
+    
+        RETURN OLD;
+    END;
+    $$ LANGUAGE plpgsql;
+    
+    
+    -- Функция: обработка изменения транзакции
+    CREATE OR REPLACE FUNCTION trg_transaction_update()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        -- Только если важные поля изменились
+        IF NEW.account_id != OLD.account_id OR
+           NEW.transfer_to_account_id IS DISTINCT FROM OLD.transfer_to_account_id OR
+           NEW.amount != OLD.amount OR
+           NEW.transaction_type != OLD.transaction_type THEN
+    
+            -- Откатываем старые изменения
+            IF OLD.transaction_type = 'INCOME' THEN
+                UPDATE accounts SET balance = balance - OLD.amount
+                WHERE id = OLD.account_id;
+    
+            ELSIF OLD.transaction_type = 'EXPENSE' THEN
+                UPDATE accounts SET balance = balance + OLD.amount
+                WHERE id = OLD.account_id;
+    
+            ELSIF OLD.transaction_type = 'TRANSFER' THEN
+                UPDATE accounts SET balance = balance + OLD.amount
+                WHERE id = OLD.account_id;
+    
+                UPDATE accounts SET balance = balance - OLD.amount
+                WHERE id = OLD.transfer_to_account_id;
+            END IF;
+    
+            -- Применяем новые
+            IF NEW.transaction_type = 'INCOME' THEN
+                UPDATE accounts SET balance = balance + NEW.amount
+                WHERE id = NEW.account_id;
+    
+            ELSIF NEW.transaction_type = 'EXPENSE' THEN
+                UPDATE accounts SET balance = balance - NEW.amount
+                WHERE id = NEW.account_id;
+    
+            ELSIF NEW.transaction_type = 'TRANSFER' THEN
+                UPDATE accounts SET balance = balance - NEW.amount
+                WHERE id = NEW.account_id;
+    
+                UPDATE accounts SET balance = balance + NEW.amount
+                WHERE id = NEW.transfer_to_account_id;
+            END IF;
+        END IF;
+    
+        RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+    
+    
+    -- Создание триггеров
+    
+    -- INSERT
+    CREATE TRIGGER trg_on_transaction_insert
+    AFTER INSERT ON transactions
     FOR EACH ROW
-    EXECUTE FUNCTION update_account_balance();
+    EXECUTE FUNCTION trg_transaction_insert();
+    
+    -- DELETE
+    CREATE TRIGGER trg_on_transaction_delete
+    AFTER DELETE ON transactions
+    FOR EACH ROW
+    EXECUTE FUNCTION trg_transaction_delete();
+    
+    -- UPDATE
+    CREATE TRIGGER trg_on_transaction_update
+    AFTER UPDATE ON transactions
+    FOR EACH ROW
+    EXECUTE FUNCTION trg_transaction_update();
+
     """
 
     try:

@@ -4,7 +4,6 @@ from datetime import datetime
 
 from dotenv import load_dotenv
 
-from data_insert.balance_trigger_insert import balance_trigger_insert
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -13,6 +12,8 @@ from data_insert.roles_insert import roles_insert
 from data_insert.users_insert import users_load
 from data_insert.currency_insert import currencies_insert
 from data_insert.account_types_insert import account_types_insert
+from data_insert.balance_trigger_insert import balance_trigger_insert
+
 
 
 load_dotenv()
