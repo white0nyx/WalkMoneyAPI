@@ -23,4 +23,16 @@ class Account(Base):
     user = relationship("User", back_populates="accounts", uselist=False)
     currency = relationship("Currency", back_populates="accounts", uselist=False)
     account_type = relationship("AccountType", back_populates="accounts", uselist=False)
-    transactions = relationship("Transaction", back_populates="account")
+
+    transactions = relationship(
+        "Transaction",
+        foreign_keys="[Transaction.account_id]",
+        back_populates="account",
+        cascade="all, delete-orphan",
+    )
+
+    received_transfers = relationship(
+        "Transaction",
+        foreign_keys="[Transaction.transfer_to_account_id]",
+        back_populates="transfer_to_account",
+    )

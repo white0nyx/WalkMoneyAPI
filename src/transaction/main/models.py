@@ -30,7 +30,8 @@ class Transaction(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     account = relationship("Account", foreign_keys=[account_id], back_populates="transactions")
-    transfer_to_account = relationship("Account", foreign_keys=[transfer_to_account_id])
+    transfer_to_account = relationship("Account", foreign_keys=[transfer_to_account_id], back_populates="received_transfers")
+
     category = relationship("Category", back_populates="transactions", uselist=False)
     subcategory = relationship("SubCategory", back_populates="transactions", uselist=False)
 
