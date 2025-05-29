@@ -8,9 +8,10 @@ from src.transaction.main.models import TransactionType
 class GetTransactionSchema(BaseSchema):
     id: int
     account_id: int
-    category_id: int
-    subcategory_id: int
+    category_id: int | None
+    subcategory_id: int | None
     amount: float
+    transfer_to_account_id: int | None = None
     transaction_type: str
     transaction_date: Optional[datetime] = None
     description: Optional[str] = None
