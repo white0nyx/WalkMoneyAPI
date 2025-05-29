@@ -4,5 +4,6 @@ static
 
 .env
 .envrc
+prod_conn
 
 *draft*.py
