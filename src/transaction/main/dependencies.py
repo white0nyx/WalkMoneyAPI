@@ -1,6 +1,6 @@
 from fastapi import Depends
-from src.transaction.repository import TransactionRepository
-from src.transaction.service import TransactionService
+from src.transaction.main.repository import TransactionRepository
+from src.transaction.main.service import TransactionService
 
 def get_transaction_repository() -> TransactionRepository:
     return TransactionRepository()

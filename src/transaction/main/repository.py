@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from src.common.database import async_session_maker
 from src.common.repository import SQLAlchemyRepository
-from src.transaction.models import Transaction
+from src.transaction.main.models import Transaction
 
 
 class TransactionRepository(SQLAlchemyRepository):

@@ -1,7 +1,7 @@
 from typing import List
 
-from src.transaction.models import Transaction
-from src.transaction.repository import TransactionRepository
+from src.transaction.main.models import Transaction
+from src.transaction.main.repository import TransactionRepository
 from src.user.models import User
 
 

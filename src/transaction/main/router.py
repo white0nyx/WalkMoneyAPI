@@ -4,9 +4,9 @@ from typing import List, Annotated
 from fastapi import APIRouter, HTTPException, Depends
 
 from src.auth import jwt_auth
-from src.transaction.dependencies import get_transaction_service
-from src.transaction.schemas import CreateTransactionSchema, UpdateTransactionSchema, GetTransactionSchema
-from src.transaction.service import TransactionService
+from src.transaction.main.dependencies import get_transaction_service
+from src.transaction.main.schemas import CreateTransactionSchema, UpdateTransactionSchema, GetTransactionSchema
+from src.transaction.main.service import TransactionService
 from src.user.models import User
 
 router = APIRouter(

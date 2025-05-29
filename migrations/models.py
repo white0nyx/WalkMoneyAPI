@@ -6,7 +6,7 @@ from src.currency.models import Currency
 from src.loan.models import Loan
 from src.role.models import Role
 from src.subcategory.main.models import SubCategory
-from src.transaction.models import Transaction
+from src.transaction.main.models import Transaction
 from src.transfer.models import Transfer
 from src.user.models import User
 
