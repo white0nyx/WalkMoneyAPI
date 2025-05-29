@@ -39,7 +39,6 @@ class CategoryService:
 
     async def delete_category(self, category_id: int, user: User):
         category = await self.category_repository.find_one(category_id)
-        print(category)
         if not category:
             raise CategoryNotFoundException
         if category.user_id != user.id:
