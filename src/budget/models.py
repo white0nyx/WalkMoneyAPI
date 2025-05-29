@@ -2,7 +2,7 @@ import sqlalchemy as sa
 from sqlalchemy import Integer, DECIMAL, Date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.category.models import Category  # noqa
+from src.category.main.models import Category  # noqa
 from src.common.base import Base
 from src.user.models import User  # noqa
 

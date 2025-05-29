@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from src.common.database import async_session_maker
-from src.category.models import Category
+from src.category.main.models import Category
 
 from src.common.repository import SQLAlchemyRepository
 

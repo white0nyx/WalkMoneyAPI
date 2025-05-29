@@ -4,9 +4,9 @@ from typing import List
 from fastapi import APIRouter, HTTPException, Depends
 
 from src.auth import jwt_auth
-from src.category.dependencies import get_category_service
-from src.category.schemas import CategorySchema, CreateCategorySchema, UpdateCategorySchema
-from src.category.service import CategoryService, CategoryNotFoundError, AccessForbiddenError
+from src.category.main.dependencies import get_category_service
+from src.category.main.schemas import CategorySchema, CreateCategorySchema, UpdateCategorySchema
+from src.category.main.service import CategoryService
 from src.user.models import User
 
 router = APIRouter(
@@ -22,8 +22,10 @@ async def create_category(
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
-        category = await category_service.create_category(category_data.model_dump(), user)
+        category = await category_service.create_category(category_data, user)
         return category
+    except HTTPException:
+        raise
     except Exception as e:
         logging.exception(f"Category creation error. Data: {category_data} Error: {e}")
         raise HTTPException(status_code=400, detail="Category creation error")
@@ -38,10 +40,11 @@ async def get_category(
     try:
         category = await category_service.get_category(category_id, user)
         return category
-    except CategoryNotFoundError:
-        raise HTTPException(status_code=404, detail="Category not found")
-    except AccessForbiddenError:
-        raise HTTPException(status_code=403, detail="Access to this category is forbidden")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Error fetching category. Category ID: {category_id} Error: {e}")
+        raise HTTPException(status_code=400, detail="Error fetching category")
 
 
 @router.get("/categories", response_model=List[CategorySchema])
@@ -50,10 +53,13 @@ async def get_all_categories(
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
-        categories = await category_service.get_all_categories(user)
+        categories = await category_service.get_all_categories(user.id)
         return categories
-    except AccessForbiddenError:
-        raise HTTPException(status_code=403, detail="Access to categories is forbidden")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Error fetching categories for user ID: {user.id} Error: {e}")
+        raise HTTPException(status_code=400, detail="Error fetching categories")
 
 
 @router.put("/categories/{category_id}", response_model=CategorySchema)
@@ -66,10 +72,11 @@ async def update_category(
     try:
         category = await category_service.update_category(category_id, category_data.model_dump(), user)
         return category
-    except CategoryNotFoundError:
-        raise HTTPException(status_code=404, detail="Category not found")
-    except AccessForbiddenError:
-        raise HTTPException(status_code=403, detail="Access to this category is forbidden")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Category update error. Category ID: {category_id} Data: {category_data} Error: {e}")
+        raise HTTPException(status_code=400, detail="Category update error")
 
 
 @router.delete("/categories/{category_id}")
@@ -81,19 +88,9 @@ async def delete_category(
     try:
         await category_service.delete_category(category_id, user)
         return "Category deleted"
-    except CategoryNotFoundError:
-        raise HTTPException(status_code=404, detail="Category not found")
-    except AccessForbiddenError:
-        raise HTTPException(status_code=403, detail="Access to this category is forbidden")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Category deletion error. Category ID: {category_id} Error: {e}")
+        raise HTTPException(status_code=400, detail="Category deletion error")
 
-
-@router.get("/categories/active", response_model=List[CategorySchema])
-async def get_active_categories(
-    category_service: CategoryService = Depends(get_category_service),
-    user: User = Depends(jwt_auth.get_current_user),
-):
-    try:
-        categories = await category_service.find_active_categories(user)
-        return categories
-    except AccessForbiddenError:
-        raise HTTPException(status_code=403, detail="Access to categories is forbidden")
