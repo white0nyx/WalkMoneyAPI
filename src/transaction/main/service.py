@@ -7,7 +7,7 @@ from src.category.main.repository import CategoryRepository
 from src.subcategory.main.exceptions import SubCategoryNotFoundException
 from src.transaction.main.models import Transaction
 from src.transaction.main.repository import TransactionRepository
-from src.transaction.main.schemas import CreateTransactionSchema
+from src.transaction.main.schemas import CreateTransactionSchema, UpdateTransactionSchema
 from src.user.models import User
 from src.transaction.main.exceptions import TransactionNotFoundException, TransactionPermissionDeniedException
 from src.transaction.main.schemas import GetTransactionParamsSchema
@@ -58,13 +58,13 @@ class TransactionService:
         transactions = await self.transaction_repository.find_all_by_user_id(user_id, params)
         return transactions
 
-    async def update_transaction(self, transaction_id: int, data: dict, user: User) -> Transaction:
-        transaction = await self.get_transaction(transaction_id, user)
+    async def update_transaction(self, transaction_id: int, data: UpdateTransactionSchema, user: User) -> Transaction:
+        await self.get_transaction(transaction_id, user)
         transaction = await self.transaction_repository.update_one(transaction_id, data.model_dump(exclude_unset=True))
         return transaction
 
     async def delete_transaction(self, transaction_id: int, user: User) -> None:
-        transaction = await self.get_transaction(transaction_id, user)
+        await self.get_transaction(transaction_id, user)
         await self.transaction_repository.delete_one(transaction_id)
         return {"message": "Transaction deleted successfully"}
 
