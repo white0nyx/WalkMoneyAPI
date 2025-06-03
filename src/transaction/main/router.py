@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends
 
 from src.auth import jwt_auth
 from src.transaction.main.dependencies import transaction_service
-from src.transaction.main.schemas import CreateTransactionSchema, UpdateTransactionSchema, GetTransactionSchema
+from src.transaction.main.schemas import CreateTransactionSchema, UpdateTransactionSchema, GetTransactionSchema, GetStatisticByCategoriesParams
 from src.transaction.main.service import TransactionService
 from src.user.models import User
 from src.transaction.main.schemas import GetTransactionParamsSchema
@@ -94,5 +94,19 @@ async def delete_transaction(
         logging.exception(f"Error deleting transaction. Error: {e}")
         raise HTTPException(status_code=400, detail="Error deleting transaction")
 
+@router.get("/statistic/by_categories")
+async def get_subcategory_statistic_by_categories(
+    params: Annotated[GetStatisticByCategoriesParams, Depends()],
+    service: Annotated[TransactionService, Depends(transaction_service)],
+    user: Annotated[User, Depends(jwt_auth.get_current_user),],
+):
+    try:
+        statistic = await service.get_period_category_statistics(params, user.id)
+        return statistic
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.exception(f"Error getting subcategory statistic by categories. Error: {e}")
+        raise HTTPException(status_code=400, detail="Error getting subcategory statistic by categories")
 
 

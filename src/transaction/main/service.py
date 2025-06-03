@@ -1,5 +1,7 @@
+from collections import defaultdict
+from datetime import datetime, timedelta
 from typing import List
-
+import calendar
 from src.account.main.exceptions import AccountNotFoundException, AccountPermissionDeniedException
 from src.account.main.repository import AccountRepository
 from src.category.main.exceptions import CategoryNotFoundException, CategoryPermissionDeniedException
@@ -7,10 +9,12 @@ from src.category.main.repository import CategoryRepository
 from src.subcategory.main.exceptions import SubCategoryNotFoundException
 from src.transaction.main.models import Transaction
 from src.transaction.main.repository import TransactionRepository
-from src.transaction.main.schemas import CreateTransactionSchema, UpdateTransactionSchema
+from src.transaction.main.schemas import CreateTransactionSchema, UpdateTransactionSchema, GetStatisticByCategoriesParams, StatisticPeriodEnum
 from src.user.models import User
 from src.transaction.main.exceptions import TransactionNotFoundException, TransactionPermissionDeniedException
 from src.transaction.main.schemas import GetTransactionParamsSchema
+
+
 class TransactionService:
 
     def __init__(
@@ -22,6 +26,58 @@ class TransactionService:
         self.transaction_repository = transaction_repository
         self.category_repository = category_repository
         self.account_repository = account_repository
+
+    @staticmethod
+    def calculate_period_dates(period: StatisticPeriodEnum) -> tuple[datetime | None, datetime | None]:
+        now = datetime.now()
+        if period == StatisticPeriodEnum.day:
+            start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            end = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+        elif period == StatisticPeriodEnum.week:
+            start = now - timedelta(days=now.weekday())  # понедельник этой недели
+            start = start.replace(hour=0, minute=0, second=0, microsecond=0)
+            end = start + timedelta(days=6, hours=23, minutes=59, seconds=59, microseconds=999999)
+        elif period == StatisticPeriodEnum.month:
+            start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            last_day = calendar.monthrange(now.year, now.month)[1]
+            end = now.replace(day=last_day, hour=23, minute=59, second=59, microsecond=999999)
+        elif period == StatisticPeriodEnum.year:
+            start = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+            end = now.replace(month=12, day=31, hour=23, minute=59, second=59, microsecond=999999)
+        elif period == StatisticPeriodEnum.all:
+            start = None
+            end = None
+        else:
+            start = None
+            end = None
+        return start, end
+
+    async def get_period_category_statistics(self, params: GetStatisticByCategoriesParams, user_id: int) -> dict:
+        start_period, end_period = self.calculate_period_dates(params.period)
+
+        rows = await self.transaction_repository.get_period_category_statistics(
+            user_id=user_id,
+            start_period=start_period,
+            end_period=end_period,
+            transaction_type=params.type,
+            period=params.period
+        )
+
+        data = defaultdict(list)
+
+        for category_id, total_amount, category_name, period_dt in rows:
+            if params.period in (StatisticPeriodEnum.year, StatisticPeriodEnum.all):
+                key = period_dt.strftime("%Y-%m")
+            else:
+                key = period_dt.date().isoformat()
+
+            data[key].append({
+                "category_id": category_id,
+                "category_name": category_name,
+                "amount": float(total_amount),
+            })
+
+        return {"data": dict(data)}
 
     async def create_transaction(self, data: CreateTransactionSchema, user: User) -> Transaction:
         if data.category_id is not None:
