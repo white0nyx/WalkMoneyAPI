@@ -38,7 +38,7 @@ class TransactionRepository(SQLAlchemyRepository):
             stmt = select(self.account_model.id).where(self.account_model.user_id == user_id)
             res = await session.execute(stmt)
             accounts_ids = res.scalars().all()
-
+            stmt = self.apply_pagination(stmt, params)
             stmt = select(self.model).where(self.model.account_id.in_(accounts_ids))
             stmt = stmt.order_by(self.model.created_at.desc())
             res = await session.execute(stmt)
