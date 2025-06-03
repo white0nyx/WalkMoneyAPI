@@ -1,18 +1,20 @@
-from collections import defaultdict
-from datetime import datetime, timedelta
-from typing import List
 import calendar
+from collections import defaultdict
+from datetime import datetime, timezone
+from datetime import timedelta
+from typing import List
+
 from src.account.main.exceptions import AccountNotFoundException, AccountPermissionDeniedException
 from src.account.main.repository import AccountRepository
 from src.category.main.exceptions import CategoryNotFoundException, CategoryPermissionDeniedException
 from src.category.main.repository import CategoryRepository
 from src.subcategory.main.exceptions import SubCategoryNotFoundException
+from src.transaction.main.exceptions import TransactionNotFoundException, TransactionPermissionDeniedException
 from src.transaction.main.models import Transaction
 from src.transaction.main.repository import TransactionRepository
 from src.transaction.main.schemas import CreateTransactionSchema, UpdateTransactionSchema, GetStatisticByCategoriesParams, StatisticPeriodEnum
-from src.user.models import User
-from src.transaction.main.exceptions import TransactionNotFoundException, TransactionPermissionDeniedException
 from src.transaction.main.schemas import GetTransactionParamsSchema
+from src.user.models import User
 
 
 class TransactionService:
@@ -29,7 +31,7 @@ class TransactionService:
 
     @staticmethod
     def calculate_period_dates(period: StatisticPeriodEnum) -> tuple[datetime | None, datetime | None]:
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         if period == StatisticPeriodEnum.day:
             start = now.replace(hour=0, minute=0, second=0, microsecond=0)
             end = now.replace(hour=23, minute=59, second=59, microsecond=999999)
@@ -52,61 +54,7 @@ class TransactionService:
             end = None
         return start, end
 
-    async def get_period_category_statistics(self, params: GetStatisticByCategoriesParams, user_id: int) -> dict:
-        start_period, end_period = self.calculate_period_dates(params.period)
 
-        rows = await self.transaction_repository.get_period_category_statistics(
-            user_id=user_id,
-            start_period=start_period,
-            end_period=end_period,
-            transaction_type=params.type,
-            period=params.period
-        )
-
-        data = defaultdict(list)
-        total_amount_sum = 0  # Общая сумма за период
-
-        for category_id, total_amount, category_name, period_dt in rows:
-            if params.period in (StatisticPeriodEnum.year, StatisticPeriodEnum.all):
-                key = period_dt.strftime("%Y-%m")
-            elif params.period == StatisticPeriodEnum.week:
-                key = period_dt.strftime("%Y-W%U")
-            else:
-                key = period_dt.date().isoformat()
-
-            amount_float = float(total_amount)
-            data[key].append({
-                "category_id": category_id,
-                "category_name": category_name,
-                "amount": amount_float,
-            })
-            total_amount_sum += amount_float
-
-        # Вычисляем длительность периода в днях (если даты есть)
-        if start_period and end_period:
-            days = (end_period - start_period).days + 1
-        else:
-            days = 1  # если дат нет, считаем 1, чтобы не делить на 0
-
-        weeks = days / 7
-        # Приблизительно считаем количество месяцев в периоде
-        if start_period and end_period:
-            months = (end_period.year - start_period.year) * 12 + (end_period.month - start_period.month) + 1
-        else:
-            months = 1
-
-        average_per_day = total_amount_sum / days if days > 0 else 0
-        average_per_week = total_amount_sum / weeks if weeks > 0 else 0
-        average_per_month = total_amount_sum / months if months > 0 else 0
-
-        return {
-            "data": dict(data),
-            "total_amount": total_amount_sum,
-            "average_per_day": average_per_day,
-            "average_per_week": average_per_week,
-            "average_per_month": average_per_month,
-            "period": params.period.value,
-        }
 
     async def create_transaction(self, data: CreateTransactionSchema, user: User) -> Transaction:
         if data.category_id is not None:
@@ -152,4 +100,85 @@ class TransactionService:
         await self.get_transaction(transaction_id, user)
         await self.transaction_repository.delete_one(transaction_id)
         return {"message": "Transaction deleted successfully"}
+
+    async def get_time_statistics(self, params: GetStatisticByCategoriesParams, user_id: int) -> dict:
+        start_period, end_period = self.calculate_period_dates(params.period)
+        start_period = await self.transaction_repository.get_first_transaction_date(user_id) if not start_period else start_period
+        end_period = datetime.now(timezone.utc) if not end_period else end_period
+
+        rows = await self.transaction_repository.get_period_category_statistics(
+            user_id=user_id,
+            start_period=start_period,
+            end_period=end_period,
+            transaction_type=params.type,
+            period=params.period
+        )
+
+        data = defaultdict(list)
+        total_amount_sum = 0  # Общая сумма за период
+
+        for category_id, total_amount, category_name, period_dt in rows:
+            if params.period in (StatisticPeriodEnum.year, StatisticPeriodEnum.all):
+                key = period_dt.strftime("%Y-%m")
+            elif params.period == StatisticPeriodEnum.week:
+                key = period_dt.strftime("%Y-W%U")
+            else:
+                key = period_dt.date().isoformat()
+
+            amount_float = float(total_amount)
+            data[key].append({
+                "category_id": category_id,
+                "category_name": category_name,
+                "amount": amount_float,
+            })
+            total_amount_sum += amount_float
+
+        # Вычисляем длительность периода в днях (если даты есть)
+        if start_period and end_period:
+            days = (end_period - start_period).days + 1
+        else:
+            days = 1  # если дат нет, считаем 1, чтобы не делить на 0
+
+        weeks = days / 7 if days > 7 else 1  # Приблизительно считаем количество недель в периоде
+        # Приблизительно считаем количество месяцев в периоде
+        if start_period and end_period:
+            months = (end_period.year - start_period.year) * 12 + (end_period.month - start_period.month) + 1
+        else:
+            months = 1
+
+        average_per_day = total_amount_sum / days if days > 0 else 0
+        average_per_week = total_amount_sum / weeks if weeks > 0 else 0
+        average_per_month = total_amount_sum / months if months > 0 else 0
+
+        return {
+            "data": dict(data),
+            "total_amount": total_amount_sum,
+            "average_per_day": average_per_day,
+            "average_per_week": average_per_week,
+            "average_per_month": average_per_month,
+            "period": params.period.value,
+        }
+
+    async def get_total_category_statistics(self, params: GetStatisticByCategoriesParams, user_id: int) -> dict:
+        start_period, end_period = self.calculate_period_dates(params.period)
+        start_period = await self.transaction_repository.get_first_transaction_date(user_id) if not start_period else start_period
+        end_period = datetime.now() if not end_period else end_period
+
+        rows = await self.transaction_repository.get_total_category_statistics(
+            user_id=user_id,
+            start_period=start_period,
+            end_period=end_period,
+            transaction_type=params.type
+        )
+
+        data = [
+            {
+                "category_id": category_id,
+                "category_name": category_name,
+                "amount": float(total_amount)
+            }
+            for category_id, total_amount, category_name in rows
+        ]
+
+        return {"data": data}
 

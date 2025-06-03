@@ -94,19 +94,34 @@ async def delete_transaction(
         logging.exception(f"Error deleting transaction. Error: {e}")
         raise HTTPException(status_code=400, detail="Error deleting transaction")
 
-@router.get("/statistic/by_categories")
-async def get_subcategory_statistic_by_categories(
+@router.get("/statistic/by_time")
+async def get_subcategory_statistic_by_time(
     params: Annotated[GetStatisticByCategoriesParams, Depends()],
     service: Annotated[TransactionService, Depends(transaction_service)],
     user: Annotated[User, Depends(jwt_auth.get_current_user),],
 ):
     try:
-        statistic = await service.get_period_category_statistics(params, user.id)
+        statistic = await service.get_time_statistics(params, user.id)
         return statistic
     except HTTPException:
         raise
     except Exception as e:
         logging.exception(f"Error getting subcategory statistic by categories. Error: {e}")
         raise HTTPException(status_code=400, detail="Error getting subcategory statistic by categories")
+
+
+@router.get("/statistic/by_categories")
+async def get_total_category_statistics(
+    params: Annotated[GetStatisticByCategoriesParams, Depends()],
+    service: Annotated[TransactionService, Depends(transaction_service)],
+    user: Annotated[User, Depends(jwt_auth.get_current_user)],
+):
+    try:
+        result = await service.get_total_category_statistics(params, user.id)
+        return result
+    except Exception as e:
+        logging.exception(f"Error getting total category statistics: {e}")
+        raise HTTPException(status_code=400, detail="Error getting total category statistics")
+
 
 
