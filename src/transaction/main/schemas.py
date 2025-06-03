@@ -27,5 +27,5 @@ class CreateTransactionSchema(BaseSchema):
     description: str | None
 
 
-class UpdateTransactionSchema(BaseSchema):
+class UpdateTransactionSchema(CreateTransactionSchema):
     pass

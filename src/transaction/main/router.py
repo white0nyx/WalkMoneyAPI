@@ -68,7 +68,7 @@ async def update_transaction(
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
-        transaction = await service.update_transaction(transaction_id, transaction_data.model_dump(), user)
+        transaction = await service.update_transaction(transaction_id, transaction_data, user)
         return transaction
     except HTTPException:
         raise
