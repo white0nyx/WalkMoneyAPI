@@ -64,20 +64,49 @@ class TransactionService:
         )
 
         data = defaultdict(list)
+        total_amount_sum = 0  # Общая сумма за период
 
         for category_id, total_amount, category_name, period_dt in rows:
             if params.period in (StatisticPeriodEnum.year, StatisticPeriodEnum.all):
                 key = period_dt.strftime("%Y-%m")
+            elif params.period == StatisticPeriodEnum.week:
+                key = period_dt.strftime("%Y-W%U")
             else:
                 key = period_dt.date().isoformat()
 
+            amount_float = float(total_amount)
             data[key].append({
                 "category_id": category_id,
                 "category_name": category_name,
-                "amount": float(total_amount),
+                "amount": amount_float,
             })
+            total_amount_sum += amount_float
 
-        return {"data": dict(data)}
+        # Вычисляем длительность периода в днях (если даты есть)
+        if start_period and end_period:
+            days = (end_period - start_period).days + 1
+        else:
+            days = 1  # если дат нет, считаем 1, чтобы не делить на 0
+
+        weeks = days / 7
+        # Приблизительно считаем количество месяцев в периоде
+        if start_period and end_period:
+            months = (end_period.year - start_period.year) * 12 + (end_period.month - start_period.month) + 1
+        else:
+            months = 1
+
+        average_per_day = total_amount_sum / days if days > 0 else 0
+        average_per_week = total_amount_sum / weeks if weeks > 0 else 0
+        average_per_month = total_amount_sum / months if months > 0 else 0
+
+        return {
+            "data": dict(data),
+            "total_amount": total_amount_sum,
+            "average_per_day": average_per_day,
+            "average_per_week": average_per_week,
+            "average_per_month": average_per_month,
+            "period": params.period.value,
+        }
 
     async def create_transaction(self, data: CreateTransactionSchema, user: User) -> Transaction:
         if data.category_id is not None:
