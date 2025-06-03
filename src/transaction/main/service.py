@@ -10,7 +10,7 @@ from src.transaction.main.repository import TransactionRepository
 from src.transaction.main.schemas import CreateTransactionSchema
 from src.user.models import User
 from src.transaction.main.exceptions import TransactionNotFoundException, TransactionPermissionDeniedException
-
+from src.transaction.main.schemas import GetTransactionParamsSchema
 class TransactionService:
 
     def __init__(
@@ -54,8 +54,8 @@ class TransactionService:
             raise TransactionPermissionDeniedException
         return transaction
 
-    async def get_all_transactions(self, user_id: int) -> List[Transaction]:
-        transactions = await self.transaction_repository.find_all_by_user_id(user_id)
+    async def get_all_transactions(self, user_id: int, params: GetTransactionParamsSchema) -> List[Transaction]:
+        transactions = await self.transaction_repository.find_all_by_user_id(user_id, params)
         return transactions
 
     async def update_transaction(self, transaction_id: int, data: dict, user: User) -> Transaction:

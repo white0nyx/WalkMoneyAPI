@@ -1,15 +1,23 @@
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import select, Select
 from sqlalchemy.orm import selectinload
 from src.common.database import async_session_maker
 from src.common.repository import SQLAlchemyRepository
 from src.transaction.main.models import Transaction
 from src.account.main.models import Account
+from src.transaction.main.schemas import GetTransactionParamsSchema
 
 class TransactionRepository(SQLAlchemyRepository):
     model: type[Transaction] = Transaction
     account_model: type[Account] = Account
+
+    def _apply_filters(self, stmt: Select, params: GetTransactionParamsSchema):
+        if params.start_period:
+            stmt = stmt.where(self.model.created_at >= params.start_period)
+        if params.end_period:
+            stmt = stmt.where(self.model.created_at <= params.end_period)
+        return stmt
 
     async def find_one(self, transaction_id: int):
         async with async_session_maker() as session:
@@ -48,7 +56,7 @@ class TransactionRepository(SQLAlchemyRepository):
             res = await session.execute(stmt)
             return res.scalars().all()
 
-    async def find_all_by_user_id(self, user_id: int):
+    async def find_all_by_user_id(self, user_id: int, params: GetTransactionParamsSchema):
         async with async_session_maker() as session:
 
             stmt = select(self.account_model.id).where(self.account_model.user_id == user_id)

@@ -8,6 +8,7 @@ from src.transaction.main.dependencies import transaction_service
 from src.transaction.main.schemas import CreateTransactionSchema, UpdateTransactionSchema, GetTransactionSchema
 from src.transaction.main.service import TransactionService
 from src.user.models import User
+from src.transaction.main.schemas import GetTransactionParamsSchema
 
 router = APIRouter(
     prefix="/transaction_api",
@@ -47,6 +48,7 @@ async def get_transaction(
 
 @router.get("", response_model=List[GetTransactionSchema])
 async def get_all_transactions(
+    params: Annotated[GetTransactionParamsSchema, Depends()],
     service: Annotated[TransactionService, Depends(transaction_service)],
     user: User = Depends(jwt_auth.get_current_user),
 ):

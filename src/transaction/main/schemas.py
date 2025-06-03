@@ -4,6 +4,9 @@ from typing import Optional
 from src.common.schemas import BaseSchema
 from src.transaction.main.models import TransactionType
 
+class GetTransactionParamsSchema(BaseSchema):
+    start_period: datetime | None = None
+    end_period: datetime | None = None
 
 class GetTransactionSchema(BaseSchema):
     id: int
