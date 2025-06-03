@@ -11,7 +11,7 @@ from src.user.models import User
 from src.transaction.main.schemas import GetTransactionParamsSchema
 
 router = APIRouter(
-    prefix="/transaction_api",
+    prefix="/transaction",
     tags=["transaction_api"],
     responses={404: {"description": "Not found"}},
 )

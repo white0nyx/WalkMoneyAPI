@@ -10,7 +10,7 @@ from src.category.main.service import CategoryService
 from src.user.models import User
 
 router = APIRouter(
-    prefix="/category_api",
+    prefix="/category",
     tags=["category_api"],
     responses={404: {"description": "Not found"}},
 )

@@ -1,19 +1,16 @@
-
-
-
 import logging
-from typing import List, Annotated
+from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Depends
 
+from src.account.main.dependencies import account_service
 from src.account.main.schemas import CreateAccountSchema, GetAccountSchema, ResponseGetAccountsSchema, GetSelectedAccountSchema, UpdateAccountSchema
 from src.account.main.service import AccountService
 from src.auth import jwt_auth
-from src.account.main.dependencies import account_service
 from src.user.models import User
 
 router = APIRouter(
-    prefix="/account_api",
+    prefix="/account",
     tags=["account_api"],
     responses={404: {"description": "Not found"}},
 )
