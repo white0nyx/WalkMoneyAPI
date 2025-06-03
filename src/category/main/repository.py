@@ -29,3 +29,9 @@ class CategoryRepository(SQLAlchemyRepository):
             stmt = self.apply_pagination(stmt, params)
             res = await session.execute(stmt)
             return res.scalars().all()
+
+    async def find_all_by_user_id_without_pagination(self, user_id: int, type_: str) -> Sequence[Category]:
+        async with async_session_maker() as session:
+            stmt = select(self.model).where(self.model.user_id == user_id, self.model.type == type_)
+            res = await session.execute(stmt)
+            return res.scalars().all()

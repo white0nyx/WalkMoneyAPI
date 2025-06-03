@@ -117,7 +117,7 @@ async def get_total_category_statistics(
     user: Annotated[User, Depends(jwt_auth.get_current_user)],
 ):
     try:
-        result = await service.get_total_category_statistics(params, user.id)
+        result = await service.get_category_statistics(params, user.id)
         return result
     except Exception as e:
         logging.exception(f"Error getting total category statistics: {e}")

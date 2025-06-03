@@ -61,10 +61,10 @@ class TransactionRepository(SQLAlchemyRepository):
                 return []
 
             # Выбираем группировку по месяцу для year и all, иначе по period
-            if period in (StatisticPeriodEnum.all, StatisticPeriodEnum.year):
+            if period in (StatisticPeriodEnum.year, StatisticPeriodEnum.all):
                 group_period = func.date_trunc("month", self.model.created_at).label("period")
             else:
-                group_period = func.date_trunc(period.value, self.model.created_at).label("period")
+                group_period = func.date_trunc("day", self.model.created_at).label("period")
 
             stmt = (
                 select(
