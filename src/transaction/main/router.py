@@ -53,7 +53,7 @@ async def get_all_transactions(
     user: User = Depends(jwt_auth.get_current_user),
 ):
     try:
-        transactions = await service.get_all_transactions(user.id)
+        transactions = await service.get_all_transactions(user.id, params)
         return transactions
     except HTTPException:
         raise
