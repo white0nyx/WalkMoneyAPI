@@ -13,7 +13,7 @@ class GetTransactionSchema(BaseSchema):
     amount: float
     transfer_to_account_id: int | None = None
     transaction_type: str
-    transaction_date: Optional[datetime] = None
+    created_at: datetime
     description: Optional[str] = None
 
 class CreateTransactionSchema(BaseSchema):
@@ -23,7 +23,7 @@ class CreateTransactionSchema(BaseSchema):
     transfer_to_account_id: int | None = None
     amount: float = 0
     transaction_type: TransactionType
-    created_at: datetime | None = None
+    created_at: datetime = datetime.now()
     description: str | None
 
 

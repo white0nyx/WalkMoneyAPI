@@ -47,13 +47,22 @@ class TransactionService:
         return transaction
 
     async def get_transaction(self, transaction_id: int, user: User) -> Transaction:
-        pass
+        transaction = await self.transaction_repository.find_one(transaction_id)
+        if not transaction:
+            raise TransactionNotFoundException
+        if transaction.account.user_id != user.id:
+            raise TransactionPermissionDeniedException
+        return transaction
 
     async def get_all_transactions(self, user_id: int) -> List[Transaction]:
-        pass
+        transactions = await self.transaction_repository.find_all_by_user_id(user_id)
+        return transactions
 
     async def update_transaction(self, transaction_id: int, data: dict, user: User) -> Transaction:
         pass
 
     async def delete_transaction(self, transaction_id: int, user: User) -> None:
-        pass
+        transaction = await self.get_transaction(transaction_id, user)
+        await self.transaction_repository.delete_one(transaction_id)
+        return {"message": "Transaction deleted successfully"}
+
